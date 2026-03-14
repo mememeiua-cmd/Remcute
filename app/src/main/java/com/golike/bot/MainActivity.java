@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         );
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_bot);
 
         webView     = findViewById(R.id.webview);
         splashView  = findViewById(R.id.splash);
