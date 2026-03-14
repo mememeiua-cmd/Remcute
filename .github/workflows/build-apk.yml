@@ -1,0 +1,65 @@
+name: Build GoLike Helper APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+    - name: Download gradle-wrapper.jar
+      run: |
+        mkdir -p gradle/wrapper
+        curl -sL "https://github.com/nicholasgasior/android-hello-world/raw/master/gradle/wrapper/gradle-wrapper.jar" \
+          -o gradle/wrapper/gradle-wrapper.jar
+        echo "Jar size: $(du -sh gradle/wrapper/gradle-wrapper.jar)"
+
+    - name: Grant execute permission
+      run: chmod +x gradlew
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug --stacktrace
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: GoLikeHelper-APK
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ github.run_number }}
+        name: "GoLike Helper v${{ github.run_number }}"
+        body: |
+          ## GoLike Helper APK - Auto Captcha Solver
+
+          ### Cach cai dat:
+          1. Tai file app-debug.apk ben duoi
+          2. Bat "Cai tu nguon khong xac dinh" trong Cai dat
+          3. Cai APK
+
+          ### Quyen can cap sau khi cai:
+          - Overlay (Hien thi tren ung dung khac)
+          - Accessibility Service
+          - Screen Capture (popup tu dong khi nhan Start)
+        files: app/build/outputs/apk/debug/app-debug.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
