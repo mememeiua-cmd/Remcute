@@ -1,12 +1,2 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.2'
-    }
-}
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
+apply plugin: 'com.android.application'
+...
