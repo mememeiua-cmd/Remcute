@@ -6,6 +6,7 @@ import android.os.*;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import java.io.*;
+import java.lang.Process;
 
 public class BotService extends Service {
     private static final String TAG = "GLBotService";
