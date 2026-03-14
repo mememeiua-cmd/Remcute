@@ -162,6 +162,10 @@ public class HttpServerService extends Service {
                 case "/swipe":
                     response = handleSwipe(body);
                     break;
+                case "/credentials":
+                    response = ok(MainActivity.getSavedCredentialsJson());
+                    MainActivity.addLog("Bot doc thong tin credentials");
+                    break;
                 default:
                     response = "HTTP/1.1 404 Not Found\r\nContent-Length:2\r\n\r\n{}";
             }
