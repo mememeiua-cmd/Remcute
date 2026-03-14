@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="#07070d">
+
+      <WebView
+          android:id="@+id/webview"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"/>
+
+      <!-- Splash screen overlay -->
+      <LinearLayout
+          android:id="@+id/splash"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:orientation="vertical"
+          android:gravity="center"
+          android:background="#07070d">
+
+          <TextView
+              android:id="@+id/logo_emoji"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="🤖"
+              android:textSize="72sp"/>
+
+          <TextView
+              android:id="@+id/app_title"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="GoLike Bot"
+              android:textSize="32sp"
+              android:textColor="#58a6ff"
+              android:textStyle="bold"
+              android:layout_marginTop="16dp"/>
+
+          <TextView
+              android:id="@+id/app_subtitle"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Auto Captcha Solver"
+              android:textSize="14sp"
+              android:textColor="#8b949e"
+              android:layout_marginTop="8dp"/>
+
+          <TextView
+              android:id="@+id/loading_text"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Dang khoi dong..."
+              android:textSize="13sp"
+              android:textColor="#3fb950"
+              android:layout_marginTop="32dp"/>
+
+      </LinearLayout>
+
+  </FrameLayout>
