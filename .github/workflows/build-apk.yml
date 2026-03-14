@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
 
@@ -16,28 +18,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - uses: actions/cache@v4
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-
-    - name: Download gradle-wrapper.jar
+    - name: Install Gradle 8.4
       run: |
-        mkdir -p gradle/wrapper
-        curl -sL "https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar" \
-          -o gradle/wrapper/gradle-wrapper.jar
-        echo "Jar size: $(du -sh gradle/wrapper/gradle-wrapper.jar)"
-
-    - name: Grant execute permission
-      run: chmod +x gradlew
+        wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -P /tmp/
+        unzip -q /tmp/gradle-8.4-bin.zip -d /opt/gradle
+        echo "/opt/gradle/gradle-8.4/bin" >> $GITHUB_PATH
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: gradle assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
