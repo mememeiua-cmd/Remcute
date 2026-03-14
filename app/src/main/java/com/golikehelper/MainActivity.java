@@ -1,6 +1,9 @@
 package com.golikehelper;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
@@ -68,7 +71,25 @@ public class MainActivity extends AppCompatActivity {
             Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             i.setData(Uri.parse("package:" + getPackageName()));
             startActivity(i);
+            Toast.makeText(this,
+                "Nhấn ⋮ → 'Cho phép cài đặt bị hạn chế'",
+                Toast.LENGTH_LONG).show();
         });
+
+        String adbCmd = "adb shell cmd appops set " + getPackageName()
+            + " REQUEST_INSTALL_PACKAGES allow";
+        TextView tvAdb = findViewById(R.id.tvAdbCmd);
+        if (tvAdb != null) tvAdb.setText(adbCmd);
+
+        findViewById(R.id.btnCopyAdb).setOnClickListener(v -> {
+            ClipboardManager cm = (ClipboardManager)
+                getSystemService(Context.CLIPBOARD_SERVICE);
+            cm.setPrimaryClip(ClipData.newPlainText("adb", adbCmd));
+            Toast.makeText(this, "✓ Đã copy lệnh ADB", Toast.LENGTH_SHORT).show();
+        });
+
+        findViewById(R.id.btnAdbStep2).setOnClickListener(v ->
+            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
 
         addLog("=== GoLike Helper v2.0 ===");
         addLog("Đang chờ lệnh Start...");
