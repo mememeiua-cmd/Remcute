@@ -1,82 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-  <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-      <uses-permission android:name="android.permission.INTERNET" />
-      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-      <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-      <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-      <uses-permission android:name="android.permission.WAKE_LOCK" />
-      <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-      <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-      <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"
-          tools:ignore="ProtectedPermissions"
-          xmlns:tools="http://schemas.android.com/tools"/>
-
-      <application
-          android:allowBackup="true"
-          android:icon="@mipmap/ic_launcher"
-          android:roundIcon="@mipmap/ic_launcher_round"
-          android:label="GoLike Bot"
-          android:supportsRtl="true"
-          android:theme="@style/AppTheme"
-          android:usesCleartextTraffic="true"
-          android:hardwareAccelerated="true">
-
-          <!-- com.golike.bot: Bot WebView UI (launcher) -->
-          <activity
-              android:name=".MainActivity"
-              android:exported="true"
-              android:configChanges="orientation|screenSize|keyboardHidden"
-              android:screenOrientation="portrait"
-              android:windowSoftInputMode="adjustResize">
-              <intent-filter>
-                  <action android:name="android.intent.action.MAIN" />
-                  <category android:name="android.intent.category.LAUNCHER" />
-              </intent-filter>
-          </activity>
-
-          <service
-              android:name=".BotService"
-              android:enabled="true"
-              android:exported="false"
-              android:foregroundServiceType="dataSync" />
-
-          <receiver
-              android:name=".BootReceiver"
-              android:enabled="true"
-              android:exported="true">
-              <intent-filter android:priority="1000">
-                  <action android:name="android.intent.action.BOOT_COMPLETED" />
-                  <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                  <category android:name="android.intent.category.DEFAULT" />
-              </intent-filter>
-          </receiver>
-
-          <!-- com.golikehelper: Accessibility Helper (HTTP server on 7788) -->
-          <activity
-              android:name="com.golikehelper.MainActivity"
-              android:exported="true"
-              android:configChanges="orientation|screenSize"
-              android:screenOrientation="portrait" />
-
-          <service
-              android:name="com.golikehelper.HttpServerService"
-              android:enabled="true"
-              android:exported="false"
-              android:foregroundServiceType="dataSync" />
-
-          <service
-              android:name="com.golikehelper.AutoClickService"
-              android:enabled="true"
-              android:exported="true"
-              android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-              <intent-filter>
-                  <action android:name="android.accessibilityservice.AccessibilityService" />
-              </intent-filter>
-              <meta-data
-                  android:name="android.accessibilityservice"
-                  android:resource="@xml/accessibility_service_config" />
-          </service>
-
-      </application>
-  </manifest>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.golike.bot">
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.GoLikeBot">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
