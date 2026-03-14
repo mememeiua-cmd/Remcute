@@ -8,13 +8,27 @@ android {
         applicationId "com.golikehelper"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
+    }
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("KEYSTORE_PATH") ?: "keystore.jks")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "golikehelper123"
+            keyAlias System.getenv("KEY_ALIAS") ?: "golikehelper"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "golikehelper123"
+        }
     }
     buildTypes {
         debug {
             minifyEnabled false
             debuggable true
+        }
+        release {
+            minifyEnabled false
+            shrinkResources false
+            debuggable false
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {

@@ -24,33 +24,61 @@ jobs:
         unzip -q /tmp/gradle-8.4-bin.zip -d /opt/gradle
         echo "/opt/gradle/gradle-8.4/bin" >> $GITHUB_PATH
 
-    - name: Build Debug APK
-      run: gradle assembleDebug --stacktrace
+    - name: Generate Signing Keystore
+      run: |
+        keytool -genkeypair \
+          -alias golikehelper \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 9125 \
+          -keystore app/keystore.jks \
+          -storepass golikehelper123 \
+          -keypass golikehelper123 \
+          -dname "CN=GoLike Helper, OU=Apps, O=GoLike, L=HCM, ST=HoChiMinh, C=VN" \
+          -noprompt
 
-    - name: Upload APK
+    - name: Build Release APK
+      env:
+        KEYSTORE_PATH: keystore.jks
+        KEYSTORE_PASSWORD: golikehelper123
+        KEY_ALIAS: golikehelper
+        KEY_PASSWORD: golikehelper123
+      run: gradle assembleRelease --stacktrace
+
+    - name: Rename APK
+      run: |
+        mv app/build/outputs/apk/release/app-release.apk \
+           app/build/outputs/apk/release/GoLikeHelper.apk
+
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: GoLikeHelper-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: GoLikeHelper-Release
+        path: app/build/outputs/apk/release/GoLikeHelper.apk
         retention-days: 30
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ github.run_number }}
-        name: "GoLike Helper v${{ github.run_number }}"
+        name: "GoLike Helper v1.1.${{ github.run_number }}"
         body: |
-          ## GoLike Helper APK - Auto Captcha Solver
+          ## GoLike Helper v1.1 - Auto Captcha Solver
+
+          > Release APK co chu ky chinh thuc - giam canh bao Play Protect
 
           ### Cach cai dat:
-          1. Tai file app-debug.apk ben duoi
-          2. Bat "Cai tu nguon khong xac dinh" trong Cai dat
-          3. Cai APK
+          1. Tai file **GoLikeHelper.apk** ben duoi
+          2. Neu thay canh bao Play Protect → nhan **"Cai dat anyway"**
+          3. Mo app → nhan **"Mo thong tin ung dung"** neu can mo khoa Accessibility
 
-          ### Quyen can cap sau khi cai:
-          - Overlay (Hien thi tren ung dung khac)
-          - Accessibility Service
-          - Screen Capture (popup tu dong khi nhan Start)
-        files: app/build/outputs/apk/debug/app-debug.apk
+          ### Quyen can cap:
+          - **Overlay** - Hien thi tren ung dung khac
+          - **Accessibility Service** - De thuc hien click tu dong
+          - **Screen Capture** - Chup man hinh (popup khi nhan Start)
+
+          ### Luu y Android 13+:
+          - Neu thay "Che do cai dat bi han che" → vao App Info → menu 3 cham → Cho phep
+        files: app/build/outputs/apk/release/GoLikeHelper.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
