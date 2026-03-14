@@ -1,0 +1,1 @@
+{"action":"create_or_update_file","params":{"path":"gradle/wrapper/gradle-wrapper.properties","content":"distributionBase=GRADLE_DISTRIBUTION\ndistributionPath=wrapper/dists\nzipStoreBase=GRADLE_DISTRIBUTION\nzipStorePath=wrapper/dists\ndistributionUrl=https\\:\\\\//services.gradle.org/distributions/gradle-8.1.1-all.zip","message":"Update gradle-wrapper.properties"}}
