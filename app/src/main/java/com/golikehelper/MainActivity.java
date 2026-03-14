@@ -1,6 +1,5 @@
 package com.golikehelper;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.projection.MediaProjectionManager;
@@ -11,16 +10,21 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQUEST_MEDIA_PROJECTION = 1001;
     private static final String PREFS_NAME = "ShopeeCredentials";
 
     private TextView tvStatus, tvLog, tvAccessStatus, tvCredStatus;
     private EditText etAuth, etTToken, etShopId;
     private MediaProjectionManager projectionManager;
+
+    // ActivityResultLauncher thay the startActivityForResult (da deprecated)
+    private ActivityResultLauncher<Intent> screenCaptureLauncher;
 
     public static MainActivity instance;
     public static StringBuilder logBuilder = new StringBuilder();
@@ -31,16 +35,33 @@ public class MainActivity extends AppCompatActivity {
         instance = this;
         setContentView(R.layout.activity_main);
 
-        tvStatus      = findViewById(R.id.tvStatus);
-        tvLog         = findViewById(R.id.tvLog);
+        tvStatus       = findViewById(R.id.tvStatus);
+        tvLog          = findViewById(R.id.tvLog);
         tvAccessStatus = findViewById(R.id.tvAccessStatus);
-        tvCredStatus  = findViewById(R.id.tvCredStatus);
-        etAuth        = findViewById(R.id.etAuth);
-        etTToken      = findViewById(R.id.etTToken);
-        etShopId      = findViewById(R.id.etShopId);
+        tvCredStatus   = findViewById(R.id.tvCredStatus);
+        etAuth         = findViewById(R.id.etAuth);
+        etTToken       = findViewById(R.id.etTToken);
+        etShopId       = findViewById(R.id.etShopId);
 
-        projectionManager = (MediaProjectionManager)
-            getSystemService(MEDIA_PROJECTION_SERVICE);
+        projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+
+        // Dang ky launcher chup man hinh (Android 15 compatible)
+        screenCaptureLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    HttpServerService.projectionResultCode = result.getResultCode();
+                    HttpServerService.projectionData       = result.getData();
+                    startForegroundService(new Intent(this, HttpServerService.class));
+                    tvStatus.setText("Dang chay - Port 7788");
+                    tvStatus.setTextColor(0xFF3fb950);
+                    addLog("HTTP Server da bat tai :7788");
+                    addLog("Python bot co the ket noi ngay bay gio!");
+                } else {
+                    addLog("Tu choi quyen chup man hinh.");
+                }
+            }
+        );
 
         loadCredentials();
 
@@ -74,6 +95,12 @@ public class MainActivity extends AppCompatActivity {
             ? "Accessibility: Da kich hoat \u2713"
             : "Accessibility: Chua kich hoat \u2717");
         tvAccessStatus.setTextColor(accessOk ? 0xFF3fb950 : 0xFFf85149);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (instance == this) instance = null;
     }
 
     private void saveCredentials() {
@@ -121,10 +148,14 @@ public class MainActivity extends AppCompatActivity {
     public static String getSavedCredentialsJson() {
         if (instance == null) return "{\"error\":\"app_not_ready\"}";
         SharedPreferences prefs = instance.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String auth   = prefs.getString("auth", "");
-        String tToken = prefs.getString("t_token", "");
-        String shopId = prefs.getString("shop_id", "");
+        String auth   = escape(prefs.getString("auth", ""));
+        String tToken = escape(prefs.getString("t_token", ""));
+        String shopId = escape(prefs.getString("shop_id", ""));
         return "{\"auth\":\"" + auth + "\",\"t\":\"" + tToken + "\",\"shop_id\":\"" + shopId + "\"}";
+    }
+
+    private static String escape(String s) {
+        return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private void startHelper() {
@@ -134,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         if (!Settings.canDrawOverlays(this)) {
-            Toast.makeText(this, "Cap quyen 'Hien thi tren ung dung khac' truoc!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Cap quyen Hien thi tren ung dung khac truoc!", Toast.LENGTH_LONG).show();
             return;
         }
         if (AutoClickService.instance == null) {
@@ -142,26 +173,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         addLog("Dang xin quyen chup man hinh...");
-        startActivityForResult(
-            projectionManager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_MEDIA_PROJECTION) {
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                HttpServerService.projectionResultCode = resultCode;
-                HttpServerService.projectionData       = data;
-                startForegroundService(new Intent(this, HttpServerService.class));
-                tvStatus.setText("Dang chay - Port 7788");
-                tvStatus.setTextColor(0xFF3fb950);
-                addLog("HTTP Server da bat tai :7788");
-                addLog("Python bot co the ket noi ngay bay gio!");
-            } else {
-                addLog("Nguoi dung tu choi quyen chup man hinh.");
-            }
-        }
+        screenCaptureLauncher.launch(projectionManager.createScreenCaptureIntent());
     }
 
     private void stopHelper() {
@@ -177,7 +189,8 @@ public class MainActivity extends AppCompatActivity {
             String time = java.text.DateFormat.getTimeInstance().format(new java.util.Date());
             logBuilder.insert(0, "[" + time + "] " + msg + "\n");
             if (logBuilder.length() > 4000) logBuilder.setLength(4000);
-            if (instance.tvLog != null) instance.tvLog.setText(logBuilder.toString());
+            if (instance != null && instance.tvLog != null)
+                instance.tvLog.setText(logBuilder.toString());
         });
     }
 }

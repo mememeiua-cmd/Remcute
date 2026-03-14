@@ -8,15 +8,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Base64;
-import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
 import org.json.JSONArray;
@@ -28,15 +31,15 @@ import java.nio.ByteBuffer;
 
 public class HttpServerService extends Service {
 
-    // Shared từ MainActivity sau khi user cấp quyền
     public static int    projectionResultCode;
     public static Intent projectionData;
+    public static int    totalClicks = 0;
 
     private static final int    PORT       = 7788;
     private static final String CHANNEL_ID = "GoLikeHelperChannel";
 
-    private ServerSocket serverSocket;
-    private Thread       serverThread;
+    private ServerSocket    serverSocket;
+    private Thread          serverThread;
     private MediaProjection mediaProjection;
     private ImageReader     imageReader;
     private VirtualDisplay  virtualDisplay;
@@ -68,20 +71,41 @@ public class HttpServerService extends Service {
     public IBinder onBind(Intent intent) { return null; }
 
     // ─────────────────────────────────────────
-    //  Screen capture setup
+    //  Screen capture setup  (Android 15 safe)
     // ─────────────────────────────────────────
 
+    @SuppressWarnings("deprecation")
     private void initScreenCapture() {
         MediaProjectionManager mgr =
             (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         mediaProjection = mgr.getMediaProjection(projectionResultCode, projectionData);
 
+        // Android 15: must register callback before using MediaProjection
+        mediaProjection.registerCallback(new MediaProjection.Callback() {
+            @Override
+            public void onStop() {
+                MainActivity.addLog("MediaProjection da dung.");
+                if (virtualDisplay != null) { virtualDisplay.release(); virtualDisplay = null; }
+                if (imageReader   != null) { imageReader.close();       imageReader   = null; }
+            }
+        }, new Handler(Looper.getMainLooper()));
+
+        // Get screen dimensions - compatible with all Android versions
         WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics metrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getRealMetrics(metrics);
-        screenW   = metrics.widthPixels;
-        screenH   = metrics.heightPixels;
-        screenDpi = metrics.densityDpi;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+            android.view.WindowMetrics windowMetrics = wm.getCurrentWindowMetrics();
+            android.graphics.Rect bounds = windowMetrics.getBounds();
+            screenW   = bounds.width();
+            screenH   = bounds.height();
+            screenDpi = dm.densityDpi;
+        } else {
+            android.util.DisplayMetrics metrics = new android.util.DisplayMetrics();
+            wm.getDefaultDisplay().getRealMetrics(metrics);
+            screenW   = metrics.widthPixels;
+            screenH   = metrics.heightPixels;
+            screenDpi = metrics.densityDpi;
+        }
 
         imageReader = ImageReader.newInstance(screenW, screenH, PixelFormat.RGBA_8888, 2);
         virtualDisplay = mediaProjection.createVirtualDisplay(
@@ -106,7 +130,7 @@ public class HttpServerService extends Service {
                     new Thread(() -> handleClient(client)).start();
                 }
             } catch (IOException e) {
-                if (!serverSocket.isClosed())
+                if (serverSocket != null && !serverSocket.isClosed())
                     MainActivity.addLog("Server loi: " + e.getMessage());
             }
         });
@@ -119,14 +143,12 @@ public class HttpServerService extends Service {
             BufferedReader in  = new BufferedReader(new InputStreamReader(client.getInputStream()));
             OutputStream   out = client.getOutputStream();
 
-            // Parse request line
             String requestLine = in.readLine();
             if (requestLine == null || requestLine.isEmpty()) { client.close(); return; }
             String[] parts  = requestLine.split(" ");
             String   method = parts[0];
             String   path   = parts.length > 1 ? parts[1] : "/";
 
-            // Parse headers
             int contentLength = 0;
             String header;
             while ((header = in.readLine()) != null && !header.isEmpty()) {
@@ -134,7 +156,6 @@ public class HttpServerService extends Service {
                     contentLength = Integer.parseInt(header.split(":")[1].trim());
             }
 
-            // Read body
             String body = "";
             if (contentLength > 0) {
                 char[] buf = new char[contentLength];
@@ -142,19 +163,22 @@ public class HttpServerService extends Service {
                 body = new String(buf);
             }
 
-            MainActivity.addLog("→ " + method + " " + path);
+            MainActivity.addLog(method + " " + path);
 
-            // Route
             String response;
             switch (path) {
                 case "/ping":
-                    response = ok("{\"status\":\"ok\",\"app\":\"GoLike Helper\",\"port\":" + PORT + "}");
+                    response = ok("{\"status\":\"ok\",\"app\":\"GoLike Helper\",\"port\":"
+                        + PORT + ",\"total_clicks\":" + totalClicks + "}");
                     break;
                 case "/screenshot":
                     response = handleScreenshot();
                     break;
                 case "/tap":
                     response = handleTap(body);
+                    break;
+                case "/longpress":
+                    response = handleLongPress(body);
                     break;
                 case "/click":
                     response = handleClick(body);
@@ -184,7 +208,9 @@ public class HttpServerService extends Service {
 
     private String handleScreenshot() {
         try {
-            // Retry tối đa 5 lần nếu chưa có frame
+            if (imageReader == null)
+                return ok("{\"error\":\"screen_capture_not_ready\"}");
+
             Image image = null;
             for (int i = 0; i < 5; i++) {
                 image = imageReader.acquireLatestImage();
@@ -206,22 +232,19 @@ public class HttpServerService extends Service {
             fullBitmap.copyPixelsFromBuffer(buffer);
             image.close();
 
-            // Crop chính xác
             Bitmap cropped = Bitmap.createBitmap(fullBitmap, 0, 0, screenW, screenH);
             fullBitmap.recycle();
 
-            // Scale 50% để giảm size
             int tw = screenW / 2, th = screenH / 2;
             Bitmap scaled = Bitmap.createScaledBitmap(cropped, tw, th, true);
             cropped.recycle();
 
-            // Encode JPEG
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             scaled.compress(Bitmap.CompressFormat.JPEG, 75, baos);
             scaled.recycle();
 
             String b64 = Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP);
-            MainActivity.addLog("Screenshot: " + tw + "x" + th + " | " + (b64.length()/1024) + "KB");
+            MainActivity.addLog("Screenshot: " + tw + "x" + th + " " + (b64.length()/1024) + "KB");
             return ok("{\"image\":\"" + b64 + "\",\"width\":" + tw + ",\"height\":" + th + "}");
 
         } catch (Exception e) {
@@ -237,6 +260,21 @@ public class HttpServerService extends Service {
             if (AutoClickService.instance == null)
                 return ok("{\"error\":\"accessibility_service_not_running\"}");
             boolean ok = AutoClickService.instance.performClick(x, y);
+            return ok("{\"status\":\"" + (ok ? "ok" : "failed") + "\",\"x\":" + x + ",\"y\":" + y + "}");
+        } catch (Exception e) {
+            return ok("{\"error\":\"" + e.getMessage() + "\"}");
+        }
+    }
+
+    private String handleLongPress(String body) {
+        try {
+            JSONObject json = new JSONObject(body);
+            float x        = (float) json.getDouble("x");
+            float y        = (float) json.getDouble("y");
+            long  duration = json.optLong("duration", 800);
+            if (AutoClickService.instance == null)
+                return ok("{\"error\":\"accessibility_service_not_running\"}");
+            boolean ok = AutoClickService.instance.performLongClick(x, y, duration);
             return ok("{\"status\":\"" + (ok ? "ok" : "failed") + "\",\"x\":" + x + ",\"y\":" + y + "}");
         } catch (Exception e) {
             return ok("{\"error\":\"" + e.getMessage() + "\"}");
@@ -286,9 +324,11 @@ public class HttpServerService extends Service {
     // ─────────────────────────────────────────
 
     private String ok(String json) {
+        byte[] bytes = new byte[0];
+        try { bytes = json.getBytes("UTF-8"); } catch (Exception ignored) {}
         return "HTTP/1.1 200 OK\r\n"
              + "Content-Type: application/json; charset=utf-8\r\n"
-             + "Content-Length: " + json.getBytes().length + "\r\n"
+             + "Content-Length: " + bytes.length + "\r\n"
              + "Access-Control-Allow-Origin: *\r\n"
              + "\r\n"
              + json;
@@ -301,7 +341,7 @@ public class HttpServerService extends Service {
             .createNotificationChannel(ch);
         return new Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("GoLike Helper")
-            .setContentText("HTTP Server dang chay tai :7788")
+            .setContentText("HTTP Server dang chay tai port " + PORT)
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .build();
     }
