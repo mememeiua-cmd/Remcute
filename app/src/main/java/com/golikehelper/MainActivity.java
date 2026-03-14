@@ -76,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
                 Toast.LENGTH_LONG).show();
         });
 
-        String adbCmd = "adb shell cmd appops set " + getPackageName()
-            + " REQUEST_INSTALL_PACKAGES allow";
+        String adbCmd = "adb shell appops set " + getPackageName()
+            + " ACCESS_RESTRICTED_SETTINGS allow";
         TextView tvAdb = findViewById(R.id.tvAdbCmd);
         if (tvAdb != null) tvAdb.setText(adbCmd);
 

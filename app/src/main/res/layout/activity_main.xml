@@ -333,7 +333,7 @@
                 android:id="@+id/tvAdbCmd"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="adb shell cmd appops set com.golikehelper REQUEST_INSTALL_PACKAGES allow"
+                android:text="adb shell appops set com.golikehelper ACCESS_RESTRICTED_SETTINGS allow"
                 android:textSize="10sp"
                 android:textColor="#00E5A0"
                 android:fontFamily="monospace"
