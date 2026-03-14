@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-GoLike Bot v8 - Multi Account + Lazada + History + Gemini AI
+GoLike Bot v9 - Multi Account + TikTok + Pause/Resume + Auto Retry
 - Đa tài khoản: chạy song song nhiều token cùng lúc
-- Hỗ trợ: Shopee + Lazada
+- Hỗ trợ: Shopee + Lazada + TikTok
+- Tạm dừng/Tiếp tục: điều khiển từ Web UI
+- Tự động thử lại khi mạng lỗi
 - Lịch sử: lưu vào history.json, xem qua web UI
 - Gemini AI: tự giải captcha (getDisplayMedia + Termux screencap)
 - Chạy ngầm: Wake Lock API
+- Tự khởi động sau khi khởi động lại thiết bị
 """
 import requests, time, json, re, base64, threading, queue, os, sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -32,7 +35,17 @@ PLATFORMS = {
         'skip'    : f'{GW}/api/advertising/publishers/lazada/skip-jobs',
         'icon'    : '🟠',
     },
+    'tiktok': {
+        'jobs'    : f'{GW}/api/advertising/publishers/tiktok/jobs',
+        'complete': f'{GW}/api/advertising/publishers/tiktok/complete-jobs',
+        'skip'    : f'{GW}/api/advertising/publishers/tiktok/skip-jobs',
+        'icon'    : '🎵',
+    },
 }
+
+# ══ PAUSE / RESUME ══════════════════════════════════════════
+bot_paused = threading.Event()
+bot_paused.set()  # Not paused by default (set = running)
 
 R='\033[0;31m';G='\033[0;32m';Y='\033[1;33m'
 C='\033[0;36m';P='\033[0;35m';W='\033[1;37m';N='\033[0m'
@@ -101,12 +114,24 @@ class Account:
             'Referer'        :'https://app.golike.net/',
         })
 
-    def api(self, method, url, body=None):
+    def api(self, method, url, body=None, retries=3):
         auth = self.token if self.token.startswith('Bearer ') else 'Bearer '+self.token
         h = {'Authorization':auth,'t':genT(),'Accept':'application/json'}
         if body: h['Content-Type']='application/json;charset=UTF-8'
-        r = self.sess.request(method,url,headers=h,json=body,timeout=20)
-        return r.json()
+        for attempt in range(retries):
+            try:
+                r = self.sess.request(method,url,headers=h,json=body,timeout=20)
+                return r.json()
+            except (requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout) as e:
+                if attempt < retries - 1:
+                    wait = 5 * (attempt + 1)
+                    log(Y,'!',f'[{self.label}] Mạng lỗi ({e.__class__.__name__}), thử lại sau {wait}s...')
+                    time.sleep(wait)
+                else:
+                    raise
+            except Exception:
+                raise
 
     def get_jobs(self, platform):
         url = PLATFORMS[platform]['jobs']
@@ -201,7 +226,7 @@ def make_html(port):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>GoLike Bot v8</title>
+<title>GoLike Bot v9</title>
 <style>
 *{{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}}
 body{{background:#07070d;color:#d0d8e8;font-family:monospace;min-height:100vh}}
@@ -235,6 +260,7 @@ hr{{border:none;border-top:1px solid #1a1a2e;margin:8px 0}}
 .plt-tag{{display:inline-block;padding:1px 5px;border-radius:4px;font-size:9px;margin:1px}}
 .plt-sp{{background:rgba(238,77,45,.1);color:#ee4d2d}}
 .plt-lz{{background:rgba(255,140,0,.1);color:#ff8c00}}
+.plt-tk{{background:rgba(105,66,232,.1);color:#a259ff}}
 /* CAPTCHA */
 #cap-sec{{display:none;background:#0f0f1a;border:2px solid #ee4d2d;
           border-radius:12px;padding:12px;margin:8px 0}}
@@ -334,9 +360,20 @@ hr{{border:none;border-top:1px solid #1a1a2e;margin:8px 0}}
     <div><div class="tb-val" id="t-xu" style="color:#ee4d2d">0</div><div class="tb-lbl">⭐ TỔNG XU</div></div>
     <div><div class="tb-val" id="t-sk" style="color:#ffb300">0</div><div class="tb-lbl">↷ TỔNG SKIP</div></div>
   </div>
+  <!-- Pause/Resume -->
+  <div style="display:flex;gap:6px;margin:6px 0">
+    <button class="tb" id="pause-btn" onclick="togglePause()"
+      style="flex:1;background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.3);color:#ffb300">
+      ⏸ Tạm dừng
+    </button>
+    <button class="tb" onclick="fetch('/status').then(function(r){{return r.json();}}).then(function(d){{log(d.paused?'w':'s','Bot '+(d.paused?'đang tạm dừng':'đang chạy')+' | '+d.version);}})"
+      style="flex:1">
+      📊 Trạng thái
+    </button>
+  </div>
   <hr>
   <div class="con" id="con">
-    <div class="ll"><span class="li">›</span> <span class="li">GoLike Bot v8 — Sẵn sàng</span></div>
+    <div class="ll"><span class="li">›</span> <span class="li">GoLike Bot v9 — Sẵn sàng</span></div>
   </div>
 </div>
 
@@ -382,6 +419,30 @@ function showTab(name) {{
   event.target.classList.add('on');
   if(name==='hist') loadHistory();
   if(name==='accs') loadAccounts();
+}}
+
+// ── Pause / Resume ───────────────────────────────────────
+var _botPaused = false;
+function togglePause(){{
+  var endpoint = _botPaused ? '/resume' : '/pause';
+  fetch(endpoint).then(function(r){{return r.json();}}).then(function(d){{
+    _botPaused = d.paused;
+    var btn = document.getElementById('pause-btn');
+    if(btn){{
+      if(_botPaused){{
+        btn.textContent = '▶ Tiếp tục';
+        btn.style.background = 'rgba(0,229,160,.12)';
+        btn.style.borderColor = 'rgba(0,229,160,.3)';
+        btn.style.color = '#00e5a0';
+      }} else {{
+        btn.textContent = '⏸ Tạm dừng';
+        btn.style.background = 'rgba(255,179,0,.12)';
+        btn.style.borderColor = 'rgba(255,179,0,.3)';
+        btn.style.color = '#ffb300';
+      }}
+    }}
+    log(_botPaused?'w':'s', _botPaused ? '⏸ Bot đã tạm dừng' : '▶ Bot tiếp tục chạy');
+  }}).catch(function(e){{log('e','togglePause: '+e);}});
 }}
 
 // ── Wake Lock ────────────────────────────────────────────
@@ -858,8 +919,9 @@ function loadAccounts(){{
     if(!tb)return;
     tb.innerHTML=d.accounts.map(function(a){{
       var plts=a.platforms.map(function(p){{
-        return '<span class="plt-tag plt-'+(p==='shopee'?'sp':'lz')+'">'+
-               (p==='shopee'?'🛍️ Shopee':'🟠 Lazada')+'</span>';
+        var cls=p==='shopee'?'sp':p==='tiktok'?'tk':'lz';
+        var lbl=p==='shopee'?'🛍️ Shopee':p==='tiktok'?'🎵 TikTok':'🟠 Lazada';
+        return '<span class="plt-tag plt-'+cls+'">'+lbl+'</span>';
       }}).join('');
       var statusCls=a.running?'b-run':'b-wait';
       var statusTxt=a.running?'Đang chạy':'Chờ';
@@ -883,7 +945,7 @@ function loadHistory(){{
     if(!list)return;
     if(cnt) cnt.textContent=(d.jobs||[]).length+' jobs';
     list.innerHTML=(d.jobs||[]).slice(0,100).map(function(j){{
-      var icon=j.platform==='lazada'?'🟠':'🛍️';
+      var icon=j.platform==='lazada'?'🟠':j.platform==='tiktok'?'🎵':'🛍️';
       var cls=j.success?'hist-ok':'hist-sk';
       return '<div class="hist-item '+cls+'">'+
         '<div style="display:flex;justify-content:space-between">'+
@@ -1034,6 +1096,25 @@ class Handler(BaseHTTPRequestHandler):
         elif p.path == '/cap_fail':
             need_tok.clear()
             self.send_json(200,{'ok':True})
+
+        elif p.path == '/pause':
+            bot_paused.clear()
+            log(Y,'⏸',f'Bot đã tạm dừng')
+            self.send_json(200,{'ok':True,'paused':True})
+
+        elif p.path == '/resume':
+            bot_paused.set()
+            log(G,'▶',f'Bot tiếp tục chạy')
+            self.send_json(200,{'ok':True,'paused':False})
+
+        elif p.path == '/status':
+            self.send_json(200,{
+                'paused' : not bot_paused.is_set(),
+                'version': 'v9',
+                'accounts': len(accounts),
+                'running' : sum(1 for a in accounts if a.running),
+                'stats'  : {a.label:a.stats for a in accounts},
+            })
 
         elif p.path == '/img_proxy':
             url = qs.get('url',[''])[0]
@@ -1225,6 +1306,13 @@ def bot_worker(acc: Account, delay: int):
 
     while acc.running:
         try:
+            # ── Kiểm tra tạm dừng ────────────────────────
+            if not bot_paused.is_set():
+                log(Y,'⏸',f'[{acc.label}] Đang tạm dừng...')
+                bot_paused.wait()
+                if not acc.running: break
+                log(G,'▶',f'[{acc.label}] Tiếp tục chạy')
+
             platform = acc.platforms[platform_idx % len(acc.platforms)]
             platform_idx += 1
             icon = PLATFORMS[platform]['icon']
@@ -1319,7 +1407,7 @@ def run():
     global actual_port
 
     print(f'\n{W}╔═══════════════════════════════════════════╗')
-    print(f'║   GoLike Bot v8 — Multi Account + AI     ║')
+    print(f'║   GoLike Bot v9 — TikTok + Pause/Resume   ║')
     print(f'║   Shopee + Lazada | Gemini AI Captcha    ║')
     print(f'╚═══════════════════════════════════════════╝{N}\n')
 
@@ -1339,11 +1427,12 @@ def run():
         acc_id = input(f'{C}Account ID: {N}').strip()
         if not acc_id: break
 
-        print(f'{C}Platform (1=Shopee, 2=Lazada, 3=Cả hai) [1]: {N}',end='')
+        print(f'{C}Platform (1=Shopee, 2=Lazada, 3=TikTok, 4=Tất cả) [1]: {N}',end='')
         plt_choice = input().strip() or '1'
         if plt_choice == '1':   plts = ['shopee']
         elif plt_choice == '2': plts = ['lazada']
-        else:                   plts = ['shopee','lazada']
+        elif plt_choice == '3': plts = ['tiktok']
+        else:                   plts = ['shopee','lazada','tiktok']
 
         acc = Account(idx, token, acc_id, plts, delay)
         acc_list.append(acc)

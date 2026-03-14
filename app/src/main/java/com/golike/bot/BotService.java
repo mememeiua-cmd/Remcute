@@ -18,14 +18,14 @@ public class BotService extends Service {
         super.onCreate();
         NotificationChannel nc = new NotificationChannel(
             CH, "GoLike Bot", NotificationManager.IMPORTANCE_LOW);
-        nc.setDescription("Bot chay ngam");
+        nc.setDescription("Bot chạy ngầm");
         getSystemService(NotificationManager.class).createNotificationChannel(nc);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         int port = intent != null ? intent.getIntExtra("port", 8080) : 8080;
-        startForeground(NID, buildNotif("GoLike Bot dang chay...", "Dang khoi dong..."));
+        startForeground(NID, buildNotif("GoLike Bot đang chạy...", "Đang khởi động..."));
         new Thread(() -> startBot(port)).start();
         return START_STICKY;
     }
@@ -43,12 +43,12 @@ public class BotService extends Service {
 
             String py = findPython();
             if (py == null) {
-                notify("Loi: Khong tim thay Python",
-                       "Cai Termux + 'pkg install python'");
+                notify("Lỗi: Không tìm thấy Python",
+                       "Cài Termux + 'pkg install python'");
                 return;
             }
 
-            notify("GoLike Bot dang chay", "Port: " + port);
+            notify("GoLike Bot đang chạy", "Port: " + port);
             ProcessBuilder pb = new ProcessBuilder(
                 py, f.getAbsolutePath(), "--headless", "--port", String.valueOf(port));
             pb.directory(getFilesDir());
@@ -60,13 +60,13 @@ public class BotService extends Service {
                 String line;
                 while ((line = br.readLine()) != null) {
                     Log.d(TAG, line);
-                    if (line.contains("Server")) notify("GoLike Bot dang chay", "Server OK: " + port);
-                    else if (line.contains("DONE")) notify("GoLike Bot", line.trim());
+                    if (line.contains("Server")) notify("GoLike Bot đang chạy", "✓ Server OK: " + port);
+                    else if (line.contains("DONE")) notify("GoLike Bot", "✓ " + line.trim());
                 }
             }
         } catch (Exception e) {
             Log.e(TAG, "startBot: " + e.getMessage());
-            notify("GoLike Bot - Loi", e.getMessage());
+            notify("GoLike Bot - Lỗi", e.getMessage());
         }
     }
 

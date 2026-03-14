@@ -48,7 +48,7 @@
                 android:id="@+id/logo_emoji"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="&#128717;"
+                android:text="🛍️"
                 android:textSize="52sp"
                 android:layout_gravity="center" />
         </FrameLayout>
@@ -88,7 +88,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Shopee"
+                android:text="🛍️ Shopee"
                 android:textColor="#ee4d2d"
                 android:textSize="11sp"
                 android:fontFamily="monospace"
@@ -102,7 +102,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Lazada"
+                android:text="🟠 Lazada"
                 android:textColor="#ff8c00"
                 android:textSize="11sp"
                 android:fontFamily="monospace"
@@ -116,7 +116,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gemini AI"
+                android:text="🤖 Gemini"
                 android:textColor="#b39ddb"
                 android:textSize="11sp"
                 android:fontFamily="monospace"
@@ -140,7 +140,7 @@
             android:id="@+id/loading_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Dang khoi dong..."
+            android:text="Đang khởi động..."
             android:textColor="#ffb300"
             android:textSize="12sp"
             android:fontFamily="monospace" />

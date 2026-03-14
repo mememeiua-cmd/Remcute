@@ -1,4 +1,4 @@
-name: Build GoLike Bot APK
+name: Build GoLike Bot v9 APK
 
 on:
   push:
@@ -92,37 +92,40 @@ jobs:
           --v1-signing-enabled true \
           --v2-signing-enabled true \
           --v3-signing-enabled true \
-          --out golike-bot-v8.apk \
+          --out golike-bot-v9.apk \
           golike-bot-aligned.apk
-        ls -lh golike-bot-v8.apk
+        ls -lh golike-bot-v9.apk
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: GoLike-Bot-v8-APK
-        path: golike-bot-v8.apk
+        name: GoLike-Bot-v9-APK
+        path: golike-bot-v9.apk
         retention-days: 90
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: "v8.${{ github.run_number }}"
-        name: "GoLike Bot v8.${{ github.run_number }}"
-        files: golike-bot-v8.apk
+        tag_name: "v9.${{ github.run_number }}"
+        name: "GoLike Bot v9.${{ github.run_number }}"
+        files: golike-bot-v9.apk
         body: |
-          ## GoLike Bot v8 - AI Auto Captcha
+          ## GoLike Bot v9 - TikTok + Pause/Resume + Auto Retry
 
           **Chay tren Android 14 & 15**
 
           ### Cai dat:
-          1. Tai `golike-bot-v8.apk`
+          1. Tai `golike-bot-v9.apk`
           2. Settings -> Install unknown apps -> Bat
           3. Cai dat APK
 
-          ### Tinh nang:
+          ### Tinh nang moi (v9):
+          - Ho tro TikTok (them vao Shopee + Lazada)
+          - Tam dung / Tiep tuc bot tu Web UI
+          - Tu dong thu lai khi mat mang
+          - Tu dong khoi dong sau khi reboot thiet bi
           - Gemini AI tu giai captcha
           - Da tai khoan song song
-          - Shopee + Lazada
-          - Chay nen voi Termux Python
+          - Lich su luu cuc bo
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
