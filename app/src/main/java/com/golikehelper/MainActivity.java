@@ -1,17 +1,14 @@
 package com.golikehelper;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.Settings;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,20 +16,11 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_MEDIA_PROJECTION = 1001;
+    private static final String PREFS_NAME = "ShopeeCredentials";
 
-    private TextView tvStatus;
-    private TextView tvLog;
-    private TextView tvAccessStatus;
-    private TextView tvOverlayStatus;
-    private TextView tvScreenStatus;
-    private TextView tvRunBadge;
-    private TextView tvRequestCount;
-    private TextView tvScreenshotCount;
-    private TextView tvClickCount;
-
+    private TextView tvStatus, tvLog, tvAccessStatus, tvCredStatus;
+    private EditText etAuth, etTToken, etShopId;
     private MediaProjectionManager projectionManager;
-    private Handler uiHandler = new Handler(Looper.getMainLooper());
-    private Runnable statsUpdater;
 
     public static MainActivity instance;
     public static StringBuilder logBuilder = new StringBuilder();
@@ -43,24 +31,25 @@ public class MainActivity extends AppCompatActivity {
         instance = this;
         setContentView(R.layout.activity_main);
 
-        tvStatus         = findViewById(R.id.tvStatus);
-        tvLog            = findViewById(R.id.tvLog);
-        tvAccessStatus   = findViewById(R.id.tvAccessStatus);
-        tvOverlayStatus  = findViewById(R.id.tvOverlayStatus);
-        tvScreenStatus   = findViewById(R.id.tvScreenStatus);
-        tvRunBadge       = findViewById(R.id.tvRunBadge);
-        tvRequestCount   = findViewById(R.id.tvRequestCount);
-        tvScreenshotCount = findViewById(R.id.tvScreenshotCount);
-        tvClickCount     = findViewById(R.id.tvClickCount);
+        tvStatus      = findViewById(R.id.tvStatus);
+        tvLog         = findViewById(R.id.tvLog);
+        tvAccessStatus = findViewById(R.id.tvAccessStatus);
+        tvCredStatus  = findViewById(R.id.tvCredStatus);
+        etAuth        = findViewById(R.id.etAuth);
+        etTToken      = findViewById(R.id.etTToken);
+        etShopId      = findViewById(R.id.etShopId);
 
         projectionManager = (MediaProjectionManager)
             getSystemService(MEDIA_PROJECTION_SERVICE);
 
+        loadCredentials();
+
+        findViewById(R.id.btnSaveCredentials).setOnClickListener(v -> saveCredentials());
         findViewById(R.id.btnStart).setOnClickListener(v -> startHelper());
         findViewById(R.id.btnStop).setOnClickListener(v -> stopHelper());
         findViewById(R.id.btnClearLog).setOnClickListener(v -> {
             logBuilder.setLength(0);
-            tvLog.setText("Log đã xóa.\n");
+            tvLog.setText("Log da xoa.\n");
         });
         findViewById(R.id.btnAccessibility).setOnClickListener(v ->
             startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
@@ -68,89 +57,91 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:" + getPackageName()))));
         findViewById(R.id.btnAppInfo).setOnClickListener(v -> {
-            Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-            i.setData(Uri.parse("package:" + getPackageName()));
-            startActivity(i);
-            Toast.makeText(this,
-                "Nhấn ⋮ → 'Cho phép cài đặt bị hạn chế'",
-                Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
         });
 
-        String adbCmd = "adb shell appops set " + getPackageName()
-            + " ACCESS_RESTRICTED_SETTINGS allow";
-        TextView tvAdb = findViewById(R.id.tvAdbCmd);
-        if (tvAdb != null) tvAdb.setText(adbCmd);
-
-        findViewById(R.id.btnCopyAdb).setOnClickListener(v -> {
-            ClipboardManager cm = (ClipboardManager)
-                getSystemService(Context.CLIPBOARD_SERVICE);
-            cm.setPrimaryClip(ClipData.newPlainText("adb", adbCmd));
-            Toast.makeText(this, "✓ Đã copy lệnh ADB", Toast.LENGTH_SHORT).show();
-        });
-
-        findViewById(R.id.btnAdbStep2).setOnClickListener(v ->
-            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
-
-        addLog("=== GoLike Helper v2.0 ===");
-        addLog("Đang chờ lệnh Start...");
-        startStatsUpdater();
+        addLog("=== GoLike Helper khoi dong ===");
+        addLog("Dang cho lenh Start...");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        updatePermissionStatus();
+        boolean accessOk = AutoClickService.instance != null;
+        tvAccessStatus.setText(accessOk
+            ? "Accessibility: Da kich hoat \u2713"
+            : "Accessibility: Chua kich hoat \u2717");
+        tvAccessStatus.setTextColor(accessOk ? 0xFF3fb950 : 0xFFf85149);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (statsUpdater != null) uiHandler.removeCallbacks(statsUpdater);
-        instance = null;
+    private void saveCredentials() {
+        String auth   = etAuth.getText().toString().trim();
+        String tToken = etTToken.getText().toString().trim();
+        String shopId = etShopId.getText().toString().trim();
+
+        if (auth.isEmpty() || tToken.isEmpty() || shopId.isEmpty()) {
+            Toast.makeText(this, "Vui long dien day du Auth, T Token va ID Shop!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs.edit()
+            .putString("auth", auth)
+            .putString("t_token", tToken)
+            .putString("shop_id", shopId)
+            .apply();
+
+        tvCredStatus.setText("Da luu: Shop ID " + shopId + " \u2713");
+        tvCredStatus.setTextColor(0xFF3fb950);
+        addLog("Da luu thong tin Shopee: shop_id=" + shopId);
+        Toast.makeText(this, "Da luu thong tin thanh cong!", Toast.LENGTH_SHORT).show();
     }
 
-    private void updatePermissionStatus() {
-        boolean accessOk  = AutoClickService.instance != null;
-        boolean overlayOk = Settings.canDrawOverlays(this);
-        boolean screenOk  = HttpServerService.isScreenCaptureReady;
+    private void loadCredentials() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String auth   = prefs.getString("auth", "");
+        String tToken = prefs.getString("t_token", "");
+        String shopId = prefs.getString("shop_id", "");
 
-        tvAccessStatus.setText(accessOk  ? "Đã kích hoạt ✓" : "Chưa kích hoạt ✗");
-        tvAccessStatus.setTextColor(accessOk  ? 0xFF00E5A0 : 0xFFFF5252);
+        etAuth.setText(auth);
+        etTToken.setText(tToken);
+        etShopId.setText(shopId);
 
-        tvOverlayStatus.setText(overlayOk ? "Đã cấp quyền ✓" : "Chưa cấp quyền ✗");
-        tvOverlayStatus.setTextColor(overlayOk ? 0xFF00E5A0 : 0xFFFF5252);
-
-        tvScreenStatus.setText(screenOk   ? "Đã cấp quyền ✓" : "Chưa cấp quyền (tự cấp khi Start)");
-        tvScreenStatus.setTextColor(screenOk  ? 0xFF00E5A0 : 0xFF4A4A6A);
+        if (!shopId.isEmpty()) {
+            tvCredStatus.setText("Da luu: Shop ID " + shopId + " \u2713");
+            tvCredStatus.setTextColor(0xFF3fb950);
+        } else {
+            tvCredStatus.setText("Chua luu thong tin");
+            tvCredStatus.setTextColor(0xFF8b949e);
+        }
     }
 
-    private void startStatsUpdater() {
-        statsUpdater = new Runnable() {
-            @Override
-            public void run() {
-                updatePermissionStatus();
-                tvRequestCount.setText(String.valueOf(HttpServerService.totalRequests));
-                tvScreenshotCount.setText(String.valueOf(HttpServerService.totalScreenshots));
-                tvClickCount.setText(String.valueOf(HttpServerService.totalClicks));
-                uiHandler.postDelayed(this, 1500);
-            }
-        };
-        uiHandler.post(statsUpdater);
+    public static String getSavedCredentialsJson() {
+        if (instance == null) return "{\"error\":\"app_not_ready\"}";
+        SharedPreferences prefs = instance.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String auth   = prefs.getString("auth", "");
+        String tToken = prefs.getString("t_token", "");
+        String shopId = prefs.getString("shop_id", "");
+        return "{\"auth\":\"" + auth + "\",\"t\":\"" + tToken + "\",\"shop_id\":\"" + shopId + "\"}";
     }
 
     private void startHelper() {
+        String shopId = etShopId.getText().toString().trim();
+        if (shopId.isEmpty()) {
+            Toast.makeText(this, "Vui long nhap va luu thong tin Shopee truoc!", Toast.LENGTH_LONG).show();
+            return;
+        }
         if (!Settings.canDrawOverlays(this)) {
-            Toast.makeText(this, "Cần cấp quyền Overlay trước!", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:" + getPackageName())));
+            Toast.makeText(this, "Cap quyen 'Hien thi tren ung dung khac' truoc!", Toast.LENGTH_LONG).show();
             return;
         }
         if (AutoClickService.instance == null) {
-            Toast.makeText(this, "Cần bật Accessibility Service trước!", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+            Toast.makeText(this, "Bat Accessibility Service trong Cai dat truoc!", Toast.LENGTH_LONG).show();
             return;
         }
-        addLog("Đang xin quyền chụp màn hình...");
+        addLog("Dang xin quyen chup man hinh...");
         startActivityForResult(
             projectionManager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION);
     }
@@ -163,50 +154,30 @@ public class MainActivity extends AppCompatActivity {
                 HttpServerService.projectionResultCode = resultCode;
                 HttpServerService.projectionData       = data;
                 startForegroundService(new Intent(this, HttpServerService.class));
-                setServerRunning(true);
-                addLog("✓ HTTP Server đang chạy tại :7788");
-                addLog("✓ Python bot có thể kết nối ngay!");
-                addLog("✓ Tất cả endpoint sẵn sàng");
+                tvStatus.setText("Dang chay - Port 7788");
+                tvStatus.setTextColor(0xFF3fb950);
+                addLog("HTTP Server da bat tai :7788");
+                addLog("Python bot co the ket noi ngay bay gio!");
             } else {
-                addLog("✗ Người dùng từ chối quyền chụp màn hình.");
-                Toast.makeText(this, "Cần cấp quyền chụp màn hình để hoạt động!", Toast.LENGTH_LONG).show();
+                addLog("Nguoi dung tu choi quyen chup man hinh.");
             }
         }
     }
 
     private void stopHelper() {
         stopService(new Intent(this, HttpServerService.class));
-        HttpServerService.isScreenCaptureReady = false;
-        setServerRunning(false);
-        addLog("■ Server đã dừng.");
-    }
-
-    private void setServerRunning(boolean running) {
-        if (running) {
-            tvStatus.setText("Đang chạy — Port 7788");
-            tvStatus.setTextColor(0xFF00E5A0);
-            tvRunBadge.setText("● RUN");
-            tvRunBadge.setTextColor(0xFF00E5A0);
-            tvRunBadge.setBackgroundResource(R.drawable.badge_run);
-        } else {
-            tvStatus.setText("Đang dừng");
-            tvStatus.setTextColor(0xFFFF5252);
-            tvRunBadge.setText("● STOP");
-            tvRunBadge.setTextColor(0xFFFF5252);
-            tvRunBadge.setBackgroundResource(R.drawable.badge_stop);
-        }
-        updatePermissionStatus();
+        tvStatus.setText("Dang dung");
+        tvStatus.setTextColor(0xFFf85149);
+        addLog("Server da dung.");
     }
 
     public static void addLog(String msg) {
         if (instance == null) return;
-        instance.uiHandler.post(() -> {
-            String time = new java.text.SimpleDateFormat("HH:mm:ss",
-                java.util.Locale.getDefault()).format(new java.util.Date());
+        instance.runOnUiThread(() -> {
+            String time = java.text.DateFormat.getTimeInstance().format(new java.util.Date());
             logBuilder.insert(0, "[" + time + "] " + msg + "\n");
-            if (logBuilder.length() > 6000) logBuilder.setLength(6000);
-            if (instance != null && instance.tvLog != null)
-                instance.tvLog.setText(logBuilder.toString());
+            if (logBuilder.length() > 4000) logBuilder.setLength(4000);
+            if (instance.tvLog != null) instance.tvLog.setText(logBuilder.toString());
         });
     }
 }
