@@ -1,353 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0d1117">
+    android:background="#07070d">
 
-    <LinearLayout
+    <!-- WebView (full screen) -->
+    <WebView
+        android:id="@+id/webview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:background="#07070d" />
+
+    <!-- Splash Screen overlay -->
+    <LinearLayout
+        android:id="@+id/splash"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="20dp"
-        android:gravity="center_horizontal">
+        android:gravity="center"
+        android:background="#07070d"
+        android:paddingBottom="60dp">
 
-        <!-- Avatar + Header -->
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginTop="24dp"
-            android:src="@mipmap/ic_launcher_round"
-            android:contentDescription="GoLike Helper"/>
+        <!-- Glow background circle -->
+        <FrameLayout
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="28dp">
 
+            <!-- Outer glow -->
+            <View
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/logo_glow"
+                android:layout_gravity="center"
+                android:alpha="0.3" />
+
+            <!-- Inner circle -->
+            <View
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:background="@drawable/logo_bg"
+                android:layout_gravity="center" />
+
+            <!-- Logo emoji -->
+            <TextView
+                android:id="@+id/logo_emoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&#128717;"
+                android:textSize="52sp"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+        <!-- App title -->
         <TextView
+            android:id="@+id/app_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="GoLike Helper"
-            android:textSize="28sp"
-            android:textColor="#58a6ff"
+            android:text="GoLike Bot"
+            android:textColor="#ee4d2d"
+            android:textSize="32sp"
             android:textStyle="bold"
-            android:layout_marginTop="8dp"/>
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="6dp" />
 
+        <!-- Subtitle -->
         <TextView
+            android:id="@+id/app_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Auto Captcha Solver v1.0"
+            android:text="v8 · Gemini AI · Auto Captcha"
+            android:textColor="#3a3a5c"
             android:textSize="13sp"
-            android:textColor="#8b949e"
-            android:layout_marginTop="4dp"/>
-
-        <!-- Status Card -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#161b22"
-            android:padding="16dp"
-            android:layout_marginTop="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TRANG THAI HE THONG"
-                android:textSize="11sp"
-                android:textColor="#8b949e"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:id="@+id/tvStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dang dung"
-                android:textSize="20sp"
-                android:textColor="#f85149"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp"/>
-
-            <TextView
-                android:id="@+id/tvPort"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="HTTP: localhost:7788"
-                android:textSize="13sp"
-                android:textColor="#8b949e"
-                android:fontFamily="monospace"
-                android:layout_marginTop="4dp"/>
-
-            <TextView
-                android:id="@+id/tvAccessStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Accessibility: Chua kich hoat ✗"
-                android:textSize="13sp"
-                android:textColor="#f85149"
-                android:layout_marginTop="4dp"/>
-
-            <TextView
-                android:id="@+id/tvOverlayStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Overlay: Chua cap quyen ✗"
-                android:textSize="13sp"
-                android:textColor="#f85149"
-                android:layout_marginTop="4dp"/>
-
-        </LinearLayout>
-
-        <!-- Shopee Credentials Section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="THONG TIN TAI KHOAN SHOPEE"
-            android:textSize="11sp"
-            android:textColor="#8b949e"
-            android:textStyle="bold"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#161b22"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Auth Token"
-                android:textSize="12sp"
-                android:textColor="#8b949e"/>
-
-            <EditText
-                android:id="@+id/etAuth"
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:hint="Nhap auth token..."
-                android:textColorHint="#444d56"
-                android:textColor="#c9d1d9"
-                android:textSize="12sp"
-                android:fontFamily="monospace"
-                android:background="#010409"
-                android:padding="10dp"
-                android:inputType="textVisiblePassword"
-                android:singleLine="true"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="T Token (SPC_CDS / session token)"
-                android:textSize="12sp"
-                android:textColor="#8b949e"/>
-
-            <EditText
-                android:id="@+id/etTToken"
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:hint="Nhap t token..."
-                android:textColorHint="#444d56"
-                android:textColor="#c9d1d9"
-                android:textSize="12sp"
-                android:fontFamily="monospace"
-                android:background="#010409"
-                android:padding="10dp"
-                android:inputType="textVisiblePassword"
-                android:singleLine="true"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ID Shop Shopee"
-                android:textSize="12sp"
-                android:textColor="#8b949e"/>
-
-            <EditText
-                android:id="@+id/etShopId"
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:hint="Nhap ID shop..."
-                android:textColorHint="#444d56"
-                android:textColor="#c9d1d9"
-                android:textSize="12sp"
-                android:fontFamily="monospace"
-                android:background="#010409"
-                android:padding="10dp"
-                android:inputType="number"
-                android:singleLine="true"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp"/>
-
-            <Button
-                android:id="@+id/btnSaveCredentials"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:text="LUU THONG TIN"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:backgroundTint="#1f6feb"/>
-
-            <TextView
-                android:id="@+id/tvCredStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chua luu thong tin"
-                android:textSize="12sp"
-                android:textColor="#8b949e"
-                android:layout_marginTop="8dp"/>
-
-        </LinearLayout>
-
-        <!-- Main Buttons -->
-        <Button
-            android:id="@+id/btnStart"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:text="KHOI DONG SERVER"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="#238636"/>
-
-        <Button
-            android:id="@+id/btnStop"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="DUNG SERVER"
-            android:textSize="14sp"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="#21262d"/>
-
-        <!-- Permission Section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="CAP QUYEN (bat buoc)"
-            android:textSize="11sp"
-            android:textColor="#8b949e"
-            android:textStyle="bold"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"/>
-
-        <!-- Restricted Settings Warning -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#1a1200"
-            android:padding="14dp"
-            android:layout_marginBottom="10dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⚠  NEU THAY 'Che do cai dat bi han che'"
-                android:textSize="12sp"
-                android:textColor="#f0a500"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="1. Nhan nut bên duoi → Mo thong tin ung dung\n2. Nhan menu ⋮ (3 cham) goc tren phai\n3. Chon 'Cho phep cai dat bi han che'\n4. Quay lai bam 'Cap quyen Accessibility'"
-                android:textSize="12sp"
-                android:textColor="#c9d1d9"
-                android:fontFamily="monospace"
-                android:layout_marginTop="8dp"
-                android:lineSpacingExtra="5dp"/>
-
-            <Button
-                android:id="@+id/btnAppInfo"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:text="Mo thong tin ung dung (App Info)"
-                android:textSize="12sp"
-                android:layout_marginTop="10dp"
-                android:backgroundTint="#b56000"/>
-
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/btnAccessibility"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="1.  Cap quyen Accessibility Service"
-            android:textSize="13sp"
-            android:backgroundTint="#1f6feb"/>
-
-        <Button
-            android:id="@+id/btnOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="2.  Cap quyen Hien thi tren ung dung khac"
-            android:textSize="13sp"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="#388bfd"/>
-
-        <!-- Log Section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="LOG HOAT DONG"
-            android:textSize="11sp"
-            android:textColor="#8b949e"
-            android:textStyle="bold"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvLog"
-            android:layout_width="match_parent"
-            android:layout_height="240dp"
-            android:text="Chua co log...\n"
-            android:textColor="#3fb950"
-            android:textSize="11sp"
             android:fontFamily="monospace"
-            android:padding="12dp"
-            android:background="#010409"
-            android:scrollbars="vertical"
-            android:gravity="top"/>
+            android:layout_marginBottom="48dp" />
 
-        <Button
-            android:id="@+id/btnClearLog"
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:text="Xoa log"
-            android:textSize="12sp"
-            android:layout_marginTop="4dp"
-            android:backgroundTint="#21262d"/>
-
-        <!-- API Info -->
+        <!-- Feature badges -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#161b22"
-            android:padding="14dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="30dp">
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="40dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="API ENDPOINTS (Python bot goi)"
+                android:text="Shopee"
+                android:textColor="#ee4d2d"
                 android:textSize="11sp"
-                android:textColor="#8b949e"
-                android:textStyle="bold"/>
+                android:fontFamily="monospace"
+                android:background="@drawable/badge_red"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:layout_marginEnd="6dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="GET  /ping\nGET  /credentials  → {auth, t, shop_id}\nPOST /screenshot  → base64 jpg\nPOST /tap   {x:100, y:200}\nPOST /click [{x,y},{x,y},...]\nPOST /swipe {x1,y1,x2,y2,duration}"
-                android:textSize="12sp"
-                android:textColor="#58a6ff"
+                android:text="Lazada"
+                android:textColor="#ff8c00"
+                android:textSize="11sp"
                 android:fontFamily="monospace"
-                android:layout_marginTop="8dp"
-                android:lineSpacingExtra="4dp"/>
+                android:background="@drawable/badge_orange"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:layout_marginEnd="6dp" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gemini AI"
+                android:textColor="#b39ddb"
+                android:textSize="11sp"
+                android:fontFamily="monospace"
+                android:background="@drawable/badge_purple"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
         </LinearLayout>
+
+        <!-- Loading indicator -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:indeterminate="true"
+            android:indeterminateTint="#ee4d2d"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/loading_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dang khoi dong..."
+            android:textColor="#ffb300"
+            android:textSize="12sp"
+            android:fontFamily="monospace" />
 
     </LinearLayout>
-</ScrollView>
+
+</FrameLayout>

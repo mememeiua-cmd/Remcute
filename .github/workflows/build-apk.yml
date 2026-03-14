@@ -1,4 +1,4 @@
-name: Build GoLike Helper APK
+name: Build GoLike Bot APK
 
 on:
   push:
@@ -10,13 +10,33 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    steps:
-    - uses: actions/checkout@v4
 
-    - uses: actions/setup-java@v4
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
+        cache: gradle
+
+    - name: Setup Android SDK
+      run: |
+        ANDROID_SDK_ROOT="$HOME/android-sdk"
+        mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+        cd /tmp
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+        unzip -q commandlinetools-linux-11076708_latest.zip
+        mv cmdline-tools "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+        echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+        echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$ANDROID_SDK_ROOT/build-tools/34.0.0" >> $GITHUB_PATH
+        echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+        yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+        "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;34.0.0" "platform-tools" > /dev/null 2>&1
 
     - name: Install Gradle 8.4
       run: |
@@ -24,33 +44,85 @@ jobs:
         unzip -q /tmp/gradle-8.4-bin.zip -d /opt/gradle
         echo "/opt/gradle/gradle-8.4/bin" >> $GITHUB_PATH
 
-    - name: Build Debug APK
-      run: gradle assembleDebug --stacktrace
+    - name: Generate App Icons
+      run: |
+        for entry in "mdpi:48" "hdpi:72" "xhdpi:96" "xxhdpi:144" "xxxhdpi:192"; do
+          density="${entry%%:*}"
+          sz="${entry##*:}"
+          dir="app/src/main/res/mipmap-$density"
+          mkdir -p "$dir"
+          convert -size "${sz}x${sz}" \
+            "radial-gradient:#EE4D2D-#B5290A" \
+            -fill "#FFFFFF" -font DejaVu-Sans-Bold \
+            -pointsize "$((sz/3))" -gravity Center \
+            -draw "text 0,0 'GL'" \
+            "$dir/ic_launcher.png"
+          cp "$dir/ic_launcher.png" "$dir/ic_launcher_round.png"
+          echo "Created $density ${sz}x${sz}"
+        done
 
-    - name: Upload APK
+    - name: Create signing keystore
+      run: |
+        mkdir -p ~/.android
+        keytool -genkey -v \
+          -keystore ~/.android/golike.jks \
+          -alias golike \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -storepass golike123 \
+          -keypass golike123 \
+          -dname "CN=GoLike Bot, OU=Bot, O=GoLike, L=VN, S=VN, C=VN" \
+          -noprompt
+
+    - name: Build Debug APK
+      run: |
+        gradle assembleDebug --no-daemon -x lint 2>&1 | tail -50
+
+    - name: Sign APK
+      run: |
+        APK=$(find . -name "*.apk" -path "*/debug/*" | head -1)
+        echo "Found APK: $APK"
+        "$ANDROID_SDK_ROOT/build-tools/34.0.0/zipalign" -v -p 4 "$APK" golike-bot-aligned.apk
+        "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" sign \
+          --ks ~/.android/golike.jks \
+          --ks-alias golike \
+          --ks-pass pass:golike123 \
+          --key-pass pass:golike123 \
+          --v1-signing-enabled true \
+          --v2-signing-enabled true \
+          --v3-signing-enabled true \
+          --out golike-bot-v8.apk \
+          golike-bot-aligned.apk
+        ls -lh golike-bot-v8.apk
+
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: GoLikeHelper-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 30
+        name: GoLike-Bot-v8-APK
+        path: golike-bot-v8.apk
+        retention-days: 90
 
-    - name: Create Release
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ github.run_number }}
-        name: "GoLike Helper v${{ github.run_number }}"
+        tag_name: "v8.${{ github.run_number }}"
+        name: "GoLike Bot v8.${{ github.run_number }}"
+        files: golike-bot-v8.apk
         body: |
-          ## GoLike Helper APK - Auto Captcha Solver
+          ## GoLike Bot v8 - AI Auto Captcha
 
-          ### Cach cai dat:
-          1. Tai file app-debug.apk ben duoi
-          2. Bat "Cai tu nguon khong xac dinh" trong Cai dat
-          3. Cai APK
+          **Chay tren Android 14 & 15**
 
-          ### Quyen can cap sau khi cai:
-          - Overlay (Hien thi tren ung dung khac)
-          - Accessibility Service
-          - Screen Capture (popup tu dong khi nhan Start)
-        files: app/build/outputs/apk/debug/app-debug.apk
+          ### Cai dat:
+          1. Tai `golike-bot-v8.apk`
+          2. Settings -> Install unknown apps -> Bat
+          3. Cai dat APK
+
+          ### Tinh nang:
+          - Gemini AI tu giai captcha
+          - Da tai khoan song song
+          - Shopee + Lazada
+          - Chay nen voi Termux Python
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
