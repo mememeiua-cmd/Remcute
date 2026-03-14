@@ -23,10 +23,13 @@ jobs:
           ~/.gradle/wrapper
         key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
     - name: Download gradle-wrapper.jar
       run: |
         mkdir -p gradle/wrapper
-        curl -sL "https://github.com/nicholasgasior/android-hello-world/raw/master/gradle/wrapper/gradle-wrapper.jar" \
+        curl -sL "https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar" \
           -o gradle/wrapper/gradle-wrapper.jar
         echo "Jar size: $(du -sh gradle/wrapper/gradle-wrapper.jar)"
 
