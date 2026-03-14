@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Background circle -->
+    <path
+        android:fillColor="#1f6feb"
+        android:pathData="M54,54m-54,0a54,54 0,1 1,108 0a54,54 0,1 1,-108 0"/>
+
+    <!-- Robot head body -->
+    <path
+        android:fillColor="#0d1117"
+        android:pathData="M30,38 Q30,30 38,30 L70,30 Q78,30 78,38 L78,62 Q78,70 70,70 L38,70 Q30,70 30,62 Z"/>
+
+    <!-- Robot antenna -->
+    <path
+        android:fillColor="#58a6ff"
+        android:strokeColor="#58a6ff"
+        android:strokeWidth="2"
+        android:pathData="M54,30 L54,22"/>
+    <path
+        android:fillColor="#58a6ff"
+        android:pathData="M54,22m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"/>
+
+    <!-- Robot left eye -->
+    <path
+        android:fillColor="#58a6ff"
+        android:pathData="M39,44m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0"/>
+    <path
+        android:fillColor="#0d1117"
+        android:pathData="M39,44m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M40.5,42.5m-1,0a1,1 0,1 1,2 0a1,1 0,1 1,-2 0"/>
+
+    <!-- Robot right eye -->
+    <path
+        android:fillColor="#58a6ff"
+        android:pathData="M69,44m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0"/>
+    <path
+        android:fillColor="#0d1117"
+        android:pathData="M69,44m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M70.5,42.5m-1,0a1,1 0,1 1,2 0a1,1 0,1 1,-2 0"/>
+
+    <!-- Robot mouth (smile) -->
+    <path
+        android:fillColor="#3fb950"
+        android:pathData="M42,58 Q54,66 66,58 L66,60 Q54,68 42,60 Z"/>
+
+    <!-- Robot neck -->
+    <path
+        android:fillColor="#161b22"
+        android:pathData="M46,70 L62,70 L62,76 L46,76 Z"/>
+
+    <!-- Robot body -->
+    <path
+        android:fillColor="#161b22"
+        android:pathData="M34,76 Q34,74 36,74 L72,74 Q74,74 74,76 L74,88 Q74,90 72,90 L36,90 Q34,90 34,88 Z"/>
+
+    <!-- Body center light -->
+    <path
+        android:fillColor="#238636"
+        android:pathData="M50,80m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"/>
+    <path
+        android:fillColor="#3fb950"
+        android:pathData="M54,80m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+
+    <!-- Body lines -->
+    <path
+        android:fillColor="#30363d"
+        android:pathData="M60,78 L70,78 L70,80 L60,80 Z"/>
+    <path
+        android:fillColor="#30363d"
+        android:pathData="M60,82 L68,82 L68,84 L60,84 Z"/>
+
+    <!-- Left arm -->
+    <path
+        android:fillColor="#161b22"
+        android:pathData="M26,76 Q24,76 24,78 L24,86 Q24,88 26,88 L34,88 L34,76 Z"/>
+
+    <!-- Right arm -->
+    <path
+        android:fillColor="#161b22"
+        android:pathData="M82,76 Q84,76 84,78 L84,86 Q84,88 82,88 L74,88 L74,76 Z"/>
+
+    <!-- Left hand click indicator -->
+    <path
+        android:fillColor="#1f6feb"
+        android:pathData="M24,82m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+
+    <!-- Right hand click indicator -->
+    <path
+        android:fillColor="#1f6feb"
+        android:pathData="M84,82m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+
+</vector>

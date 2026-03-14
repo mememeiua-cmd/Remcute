@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
@@ -45,8 +46,23 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:" + getPackageName()))));
 
+        findViewById(R.id.btnAppInfo).setOnClickListener(v -> openAppInfo());
+
         addLog("=== GoLike Helper khoi dong ===");
         addLog("Dang cho lenh Start...");
+    }
+
+    private void openAppInfo() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            addLog("Mo App Info thanh cong.");
+            addLog("Nhan menu 3 cham → 'Cho phep cai dat bi han che'");
+        } catch (Exception e) {
+            Toast.makeText(this, "Khong the mo App Info: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -57,6 +73,15 @@ public class MainActivity extends AppCompatActivity {
             ? "Accessibility: Da kich hoat ✓"
             : "Accessibility: Chua kich hoat ✗");
         tvAccessStatus.setTextColor(accessOk ? 0xFF3fb950 : 0xFFf85149);
+
+        TextView tvOverlay = findViewById(R.id.tvOverlayStatus);
+        if (tvOverlay != null) {
+            boolean overlayOk = Settings.canDrawOverlays(this);
+            tvOverlay.setText(overlayOk
+                ? "Overlay: Da cap quyen ✓"
+                : "Overlay: Chua cap quyen ✗");
+            tvOverlay.setTextColor(overlayOk ? 0xFF3fb950 : 0xFFf85149);
+        }
     }
 
     private void startHelper() {
