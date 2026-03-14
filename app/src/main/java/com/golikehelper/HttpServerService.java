@@ -32,9 +32,10 @@ public class HttpServerService extends Service {
     public static int    projectionResultCode;
     public static Intent projectionData;
 
-    private static final int    PORT       = 7788;
+    private static final int[]  PORT_LIST  = {7788, 7789, 7790, 7791, 7792, 7793, 7794, 7795, 7796, 7797, 7798, 7799, 8899};
     private static final String CHANNEL_ID = "GoLikeHelperChannel";
 
+    private int activePort = PORT_LIST[0];
     private ServerSocket serverSocket;
     private Thread       serverThread;
     private MediaProjection mediaProjection;
@@ -98,16 +99,45 @@ public class HttpServerService extends Service {
 
     private void startHttpServer() {
         serverThread = new Thread(() -> {
+            // Đóng socket cũ nếu còn sót lại
+            try { if (serverSocket != null && !serverSocket.isClosed()) serverSocket.close(); }
+            catch (Exception ignored) {}
+
+            // Thử lần lượt từng port cho đến khi bind thành công
+            for (int port : PORT_LIST) {
+                try {
+                    ServerSocket ss = new ServerSocket();
+                    ss.setReuseAddress(true);
+                    ss.bind(new InetSocketAddress(port));
+                    serverSocket = ss;
+                    activePort = port;
+                    break;
+                } catch (IOException e) {
+                    MainActivity.addLog("Port " + port + " ban, thu port tiep theo...");
+                }
+            }
+
+            if (serverSocket == null || !serverSocket.isBound()) {
+                MainActivity.addLog("Khong the bind bat ky port nao. Dung lai.");
+                return;
+            }
+
+            MainActivity.addLog("HTTP Server lang nghe tren port " + activePort);
+
+            // Cập nhật notification với port thực tế
             try {
-                serverSocket = new ServerSocket(PORT);
-                MainActivity.addLog("HTTP Server lang nghe tren port " + PORT);
-                while (!serverSocket.isClosed()) {
+                Notification n = buildNotificationForPort(activePort);
+                ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).notify(1, n);
+            } catch (Exception ignored) {}
+
+            while (!serverSocket.isClosed()) {
+                try {
                     Socket client = serverSocket.accept();
                     new Thread(() -> handleClient(client)).start();
+                } catch (IOException e) {
+                    if (!serverSocket.isClosed())
+                        MainActivity.addLog("Server loi: " + e.getMessage());
                 }
-            } catch (IOException e) {
-                if (!serverSocket.isClosed())
-                    MainActivity.addLog("Server loi: " + e.getMessage());
             }
         });
         serverThread.setDaemon(true);
@@ -153,7 +183,7 @@ public class HttpServerService extends Service {
             String response;
             switch (path) {
                 case "/ping":
-                    response = ok("{\"status\":\"ok\",\"app\":\"GoLike Helper\",\"port\":" + PORT + "}");
+                    response = ok("{\"status\":\"ok\",\"app\":\"GoLike Helper\",\"port\":" + activePort + "}");
                     break;
                 case "/screenshot":
                     response = handleScreenshot();
@@ -299,13 +329,17 @@ public class HttpServerService extends Service {
     }
 
     private Notification buildNotification() {
+        return buildNotificationForPort(PORT_LIST[0]);
+    }
+
+    private Notification buildNotificationForPort(int port) {
         NotificationChannel ch = new NotificationChannel(
             CHANNEL_ID, "GoLike Helper", NotificationManager.IMPORTANCE_LOW);
         ((NotificationManager) getSystemService(NOTIFICATION_SERVICE))
             .createNotificationChannel(ch);
         return new Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("GoLike Helper")
-            .setContentText("HTTP Server dang chay tai :7788")
+            .setContentText("HTTP Server dang chay tai :" + port)
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .build();
     }
