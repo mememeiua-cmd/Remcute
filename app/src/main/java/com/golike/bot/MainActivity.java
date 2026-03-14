@@ -22,7 +22,6 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -73,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
         View logo     = findViewById(R.id.logo_emoji);
         View title    = findViewById(R.id.app_title);
         View subtitle = findViewById(R.id.app_subtitle);
-        View progress = findViewById(R.id.progress_bar);
 
         if (logo == null) return;
 
