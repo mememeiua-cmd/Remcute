@@ -11,14 +11,22 @@
         android:padding="20dp"
         android:gravity="center_horizontal">
 
+        <!-- Avatar + Header -->
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="24dp"
+            android:src="@mipmap/ic_launcher_round"
+            android:contentDescription="GoLike Helper"/>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="GoLike Helper"
-            android:textSize="30sp"
+            android:textSize="28sp"
             android:textColor="#58a6ff"
             android:textStyle="bold"
-            android:layout_marginTop="30dp"/>
+            android:layout_marginTop="8dp"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -28,14 +36,14 @@
             android:textColor="#8b949e"
             android:layout_marginTop="4dp"/>
 
-        <!-- Status -->
+        <!-- Status Card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="#161b22"
             android:padding="16dp"
-            android:layout_marginTop="24dp">
+            android:layout_marginTop="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -69,14 +77,23 @@
                 android:id="@+id/tvAccessStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Accessibility: Chua kich hoat"
+                android:text="Accessibility: Chua kich hoat ✗"
+                android:textSize="13sp"
+                android:textColor="#f85149"
+                android:layout_marginTop="4dp"/>
+
+            <TextView
+                android:id="@+id/tvOverlayStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Overlay: Chua cap quyen ✗"
                 android:textSize="13sp"
                 android:textColor="#f85149"
                 android:layout_marginTop="4dp"/>
 
         </LinearLayout>
 
-        <!-- Buttons -->
+        <!-- Main Buttons -->
         <Button
             android:id="@+id/btnStart"
             android:layout_width="match_parent"
@@ -96,6 +113,7 @@
             android:layout_marginTop="8dp"
             android:backgroundTint="#21262d"/>
 
+        <!-- Permission Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -106,11 +124,49 @@
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"/>
 
+        <!-- Restricted Settings Warning -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#1a1200"
+            android:padding="14dp"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠  NEU THAY 'Che do cai dat bi han che'"
+                android:textSize="12sp"
+                android:textColor="#f0a500"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1. Nhan nut bên duoi → Mo thong tin ung dung\n2. Nhan menu ⋮ (3 cham) goc tren phai\n3. Chon 'Cho phep cai dat bi han che'\n4. Quay lai bam 'Cap quyen Accessibility'"
+                android:textSize="12sp"
+                android:textColor="#c9d1d9"
+                android:fontFamily="monospace"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="5dp"/>
+
+            <Button
+                android:id="@+id/btnAppInfo"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="Mo thong tin ung dung (App Info)"
+                android:textSize="12sp"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="#b56000"/>
+
+        </LinearLayout>
+
         <Button
             android:id="@+id/btnAccessibility"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="Cap quyen Accessibility Service"
+            android:text="1.  Cap quyen Accessibility Service"
             android:textSize="13sp"
             android:backgroundTint="#1f6feb"/>
 
@@ -118,12 +174,12 @@
             android:id="@+id/btnOverlay"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="Cap quyen Hien thi tren ung dung khac"
+            android:text="2.  Cap quyen Hien thi tren ung dung khac"
             android:textSize="13sp"
             android:layout_marginTop="8dp"
             android:backgroundTint="#388bfd"/>
 
-        <!-- Log -->
+        <!-- Log Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -177,7 +233,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="GET  /ping\nPOST /screenshot  -> base64 jpg\nPOST /tap   {x:100, y:200}\nPOST /click [{x,y},{x,y},...]"
+                android:text="GET  /ping\nPOST /screenshot  → base64 jpg\nPOST /tap   {x:100, y:200}\nPOST /click [{x,y},{x,y},...]"
                 android:textSize="12sp"
                 android:textColor="#58a6ff"
                 android:fontFamily="monospace"
