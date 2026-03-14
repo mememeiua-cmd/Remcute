@@ -1,6 +1,7 @@
 package com.golikehelper;
 
 import android.app.Activity;
+import com.golike.bot.R;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
