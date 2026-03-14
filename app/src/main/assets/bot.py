@@ -137,8 +137,9 @@ class Account:
         url = PLATFORMS[platform]['jobs']
         return self.api('GET', f'{url}?account_id={self.acc_id}')
 
-    def complete(self, platform, ads_id, obj_id, cap_token):
-        return self.api('POST', PLATFORMS[platform]['complete'], {
+    def complete(self, platform, ads_id, obj_id, cap_token, url=None):
+        url = url or PLATFORMS[platform]['complete']
+        return self.api('POST', url, {
             'ads_id':ads_id, 'account_id':int(self.acc_id),
             'async':True, 'data':None, 'captcha_token':cap_token,
         })
@@ -315,7 +316,7 @@ hr{{border:none;border-top:1px solid #1a1a2e;margin:8px 0}}
 <div id="bg-b">🔋 Chạy ngầm</div>
 
 <div class="wrap">
-<h2>🛍️ GOLIKE BOT v8 — AI AUTO</h2>
+<h2>🛍️ GOLIKE BOT v9 — AI AUTO</h2>
 
 <!-- TABS -->
 <div class="tabs">
@@ -1335,7 +1336,7 @@ def bot_worker(acc: Account, delay: int):
             log(W,icon,f'[{acc.label}][{platform}] #{uid} "{title[:28]}" +{coin}xu')
 
             # ── Lấy captcha ──────────────────────────────
-            cap = get_cap_token(acc.label, timeout=min(lock-delay-5, 90))
+            cap = get_cap_token(acc.label, timeout=max(min(lock-delay-5, 90), 15))
             if not cap:
                 acc.skip(platform, uid, objId, jtype)
                 acc.stats['sk'] += 1
@@ -1352,7 +1353,7 @@ def bot_worker(acc: Account, delay: int):
                         PLATFORMS[platform]['complete'].replace('gateway','dev')]
             for url in urls_try:
                 try:
-                    res  = acc.complete(platform, uid, objId, cap)
+                    res  = acc.complete(platform, uid, objId, cap, url)
                     rst  = int(res.get('status') or res.get('code') or 0)
                     rmsg = str(res.get('message') or '')
                     log(C,'>',f'[{acc.label}] {json.dumps(res,ensure_ascii=False)[:100]}')
