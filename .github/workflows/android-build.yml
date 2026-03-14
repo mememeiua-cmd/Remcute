@@ -1,4 +1,4 @@
-name: Build GoLike Bot v9 APK
+name: Build GoLike Helper APK
 
 on:
   push:
@@ -28,146 +28,54 @@ jobs:
     - name: Install required SDK components
       run: |
         yes | sdkmanager --licenses > /dev/null 2>&1 || true
-        sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
-        echo "SDK setup complete"
-        echo "ANDROID_HOME=$ANDROID_HOME"
-
-    - name: Generate App Icons
-      run: |
-        pip install Pillow --quiet
-        python3 - << 'PYEOF'
-import os
-from PIL import Image, ImageDraw
-
-densities = {
-    'mdpi': 48, 'hdpi': 72, 'xhdpi': 96,
-    'xxhdpi': 144, 'xxxhdpi': 192
-}
-
-for density, sz in densities.items():
-    d = f'app/src/main/res/mipmap-{density}'
-    os.makedirs(d, exist_ok=True)
-
-    img = Image.new('RGBA', (sz, sz), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    draw.ellipse([0, 0, sz-1, sz-1], fill=(238, 77, 45, 255))
-
-    inner_r = sz // 3
-    cx, cy = sz // 2, sz // 2
-    draw.ellipse([cx-inner_r, cy-inner_r, cx+inner_r, cy+inner_r], fill=(255, 120, 80, 120))
-
-    try:
-        from PIL import ImageFont
-        font_paths = [
-            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
-            '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
-            '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf',
-        ]
-        font = None
-        for fp in font_paths:
-            if os.path.exists(fp):
-                font = ImageFont.truetype(fp, sz // 3)
-                break
-        if font:
-            text = 'GL'
-            bb = draw.textbbox((0, 0), text, font=font)
-            tw, th = bb[2]-bb[0], bb[3]-bb[1]
-            tx = (sz-tw)//2 - bb[0]
-            ty = (sz-th)//2 - bb[1]
-            draw.text((tx, ty), text, fill='white', font=font)
-    except Exception as e:
-        print(f'Font error (non-fatal): {e}')
-
-    img.save(f'{d}/ic_launcher.png')
-    img.save(f'{d}/ic_launcher_round.png')
-    print(f'Created {density}: {sz}x{sz}')
-
-print('All icons generated!')
-PYEOF
-
-    - name: Create local.properties
-      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+        sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
 
     - name: Make gradlew executable
       run: chmod +x gradlew
 
     - name: Build Debug APK
-      run: |
-        ./gradlew assembleDebug \
-          --no-daemon \
-          --stacktrace \
-          -x lint \
-          2>&1
+      run: ./gradlew assembleDebug --no-daemon -x lint
 
     - name: Locate APK
       run: |
         APK=$(find . -name "*.apk" -path "*/debug/*" | head -1)
         if [ -z "$APK" ]; then
           echo "ERROR: No APK found!"
-          find . -name "*.apk" || true
           exit 1
         fi
         echo "APK_PATH=$APK" >> $GITHUB_ENV
-        echo "APK found: $APK ($(du -sh "$APK" | cut -f1))"
-
-    - name: Create signing keystore
-      run: |
-        mkdir -p ~/.android
-        keytool -genkey -v \
-          -keystore ~/.android/golike.jks \
-          -alias golike \
-          -keyalg RSA \
-          -keysize 2048 \
-          -validity 10000 \
-          -storepass golike123 \
-          -keypass golike123 \
-          -dname "CN=GoLike Bot, OU=Bot, O=GoLike, L=VN, S=VN, C=VN" \
-          -noprompt
-
-    - name: Sign and align APK
-      run: |
-        TOOLS="$ANDROID_HOME/build-tools/35.0.0"
-        "$TOOLS/zipalign" -v -p 4 "$APK_PATH" golike-bot-aligned.apk
-        "$TOOLS/apksigner" sign \
-          --ks ~/.android/golike.jks \
-          --ks-alias golike \
-          --ks-pass pass:golike123 \
-          --key-pass pass:golike123 \
-          --out golike-bot-v9.apk \
-          golike-bot-aligned.apk
-        echo "APK signed: $(ls -lh golike-bot-v9.apk)"
+        echo "Found: $APK ($(du -sh "$APK" | cut -f1))"
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: GoLike-Bot-v9-APK
-        path: golike-bot-v9.apk
+        name: GoLikeHelper-debug-APK
+        path: ${{ env.APK_PATH }}
         retention-days: 90
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: "v9.${{ github.run_number }}"
-        name: "GoLike Bot v9.${{ github.run_number }}"
-        files: golike-bot-v9.apk
+        tag_name: "build-${{ github.run_number }}"
+        name: "GoLike Helper - Build ${{ github.run_number }}"
+        files: ${{ env.APK_PATH }}
         body: |
-          ## GoLike Bot v9 - TikTok + Pause/Resume + Auto Retry
+          ## GoLike Helper APK - Android 8.0+ (API 26+)
 
-          **Chay tren Android 8.0+ (API 26+)**
+          ### Cài đặt:
+          1. Tải file APK bên dưới
+          2. Bật **"Cài từ nguồn không xác định"** trong Cài đặt
+          3. Cài APK
 
-          ### Cai dat:
-          1. Tai `golike-bot-v9.apk`
-          2. Settings -> Install unknown apps -> Bat
-          3. Cai dat APK
-          4. Cai Termux + `pkg install python`
+          ### Quyền cần cấp:
+          - **Accessibility Service** - để click tự động
+          - **Overlay** - hiển thị trên ứng dụng khác
+          - **Screen Capture** - popup tự động khi nhấn Start
 
-          ### Tinh nang v9:
-          - Ho tro TikTok (them vao Shopee + Lazada)
-          - Nut Tam dung / Tiep tuc bot tu Web UI
-          - Tu dong thu lai khi mat mang (retry 3 lan)
-          - Tu dong khoi dong sau khi reboot thiet bi
-          - Gemini AI tu giai captcha (audio + visual)
-          - Da tai khoan song song
-          - Lich su luu cuc bo (500 jobs gan nhat)
+          ### Sử dụng:
+          1. Mở app → Cấp quyền Accessibility + Overlay
+          2. Nhấn **KHỞI ĐỘNG SERVER**
+          3. Server HTTP chạy tại `localhost:7788`
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
