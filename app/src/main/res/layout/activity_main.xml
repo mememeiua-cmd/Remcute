@@ -1,164 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#07070d">
+  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical"
+      android:padding="16dp"
+      android:background="#0d1117">
 
-    <!-- WebView (full screen) -->
-    <WebView
-        android:id="@+id/webview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#07070d" />
+      <TextView
+          android:id="@+id/tvStatus"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Dang dung"
+          android:textColor="#f85149"
+          android:textSize="18sp"
+          android:textStyle="bold"
+          android:paddingBottom="8dp"/>
 
-    <!-- Splash Screen overlay -->
-    <LinearLayout
-        android:id="@+id/splash"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:background="#07070d"
-        android:paddingBottom="60dp">
+      <TextView
+          android:id="@+id/tvAccessStatus"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Accessibility: Chua kich hoat"
+          android:textColor="#f85149"
+          android:textSize="14sp"
+          android:paddingBottom="4dp"/>
 
-        <!-- Glow background circle -->
-        <FrameLayout
-            android:layout_width="140dp"
-            android:layout_height="140dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="28dp">
+      <TextView
+          android:id="@+id/tvOverlayStatus"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Overlay: Chua cap quyen"
+          android:textColor="#f85149"
+          android:textSize="14sp"
+          android:paddingBottom="12dp"/>
 
-            <!-- Outer glow -->
-            <View
-                android:layout_width="140dp"
-                android:layout_height="140dp"
-                android:background="@drawable/logo_glow"
-                android:layout_gravity="center"
-                android:alpha="0.3" />
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:paddingBottom="8dp">
 
-            <!-- Inner circle -->
-            <View
-                android:layout_width="110dp"
-                android:layout_height="110dp"
-                android:background="@drawable/logo_bg"
-                android:layout_gravity="center" />
+          <Button
+              android:id="@+id/btnStart"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:text="Bat dau"
+              android:layout_marginEnd="4dp"/>
 
-            <!-- Logo emoji -->
-            <TextView
-                android:id="@+id/logo_emoji"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🛍️"
-                android:textSize="52sp"
-                android:layout_gravity="center" />
-        </FrameLayout>
+          <Button
+              android:id="@+id/btnStop"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:text="Dung lai"
+              android:layout_marginStart="4dp"/>
+      </LinearLayout>
 
-        <!-- App title -->
-        <TextView
-            android:id="@+id/app_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="GoLike Bot"
-            android:textColor="#ee4d2d"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.05"
-            android:layout_marginBottom="6dp" />
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:paddingBottom="8dp">
 
-        <!-- Subtitle -->
-        <TextView
-            android:id="@+id/app_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="v9 · TikTok · Gemini AI"
-            android:textColor="#3a3a5c"
-            android:textSize="13sp"
-            android:fontFamily="monospace"
-            android:layout_marginBottom="48dp" />
+          <Button
+              android:id="@+id/btnAccessibility"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:text="Accessibility"
+              android:textSize="12sp"
+              android:layout_marginEnd="4dp"/>
 
-        <!-- Feature badges -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="40dp">
+          <Button
+              android:id="@+id/btnOverlay"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:text="Overlay"
+              android:textSize="12sp"
+              android:layout_marginStart="4dp"/>
+      </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🛍️ Shopee"
-                android:textColor="#ee4d2d"
-                android:textSize="11sp"
-                android:fontFamily="monospace"
-                android:background="@drawable/badge_red"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:layout_marginEnd="6dp" />
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:paddingBottom="12dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🟠 Lazada"
-                android:textColor="#ff8c00"
-                android:textSize="11sp"
-                android:fontFamily="monospace"
-                android:background="@drawable/badge_orange"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:layout_marginEnd="6dp" />
+          <Button
+              android:id="@+id/btnAppInfo"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:text="App Info"
+              android:textSize="12sp"
+              android:layout_marginEnd="4dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🎵 TikTok"
-                android:textColor="#b39ddb"
-                android:textSize="11sp"
-                android:fontFamily="monospace"
-                android:background="@drawable/badge_purple"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:layout_marginEnd="6dp" />
+          <Button
+              android:id="@+id/btnClearLog"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:text="Xoa Log"
+              android:textSize="12sp"
+              android:layout_marginStart="4dp"/>
+      </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🤖 Gemini"
-                android:textColor="#b39ddb"
-                android:textSize="11sp"
-                android:fontFamily="monospace"
-                android:background="@drawable/badge_purple"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
-        </LinearLayout>
+      <TextView
+          android:id="@+id/tvLog"
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight="1"
+          android:text="Log...
+"
+          android:textColor="#8b949e"
+          android:textSize="12sp"
+          android:fontFamily="monospace"
+          android:background="#161b22"
+          android:padding="8dp"
+          android:scrollbars="vertical"/>
 
-        <!-- Loading indicator -->
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:indeterminate="true"
-            android:indeterminateTint="#ee4d2d"
-            android:layout_marginBottom="12dp" />
-
-        <TextView
-            android:id="@+id/loading_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Đang khởi động..."
-            android:textColor="#ffb300"
-            android:textSize="12sp"
-            android:fontFamily="monospace" />
-
-    </LinearLayout>
-
-</FrameLayout>
+  </LinearLayout>
