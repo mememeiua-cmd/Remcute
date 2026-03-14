@@ -13,7 +13,7 @@ public class AutoClickService extends AccessibilityService {
     public void onServiceConnected() {
         super.onServiceConnected();
         instance = this;
-        MainActivity.addLog("✓ Accessibility Service đã kết nối.");
+        MainActivity.addLog("Accessibility Service da ket noi.");
     }
 
     @Override
@@ -26,7 +26,7 @@ public class AutoClickService extends AccessibilityService {
     public void onDestroy() {
         super.onDestroy();
         instance = null;
-        MainActivity.addLog("Accessibility Service đã ngắt kết nối.");
+        MainActivity.addLog("Accessibility Service da ngat ket noi.");
     }
 
     public boolean performClick(float x, float y) {
@@ -40,11 +40,11 @@ public class AutoClickService extends AccessibilityService {
             @Override
             public void onCompleted(GestureDescription g) {
                 HttpServerService.totalClicks++;
-                MainActivity.addLog("✓ Click (" + (int)x + "," + (int)y + ")");
+                MainActivity.addLog("Click OK (" + (int)x + "," + (int)y + ")");
             }
             @Override
             public void onCancelled(GestureDescription g) {
-                MainActivity.addLog("✗ Click bị hủy (" + (int)x + "," + (int)y + ")");
+                MainActivity.addLog("Click bi huy (" + (int)x + "," + (int)y + ")");
             }
         }, null);
         return dispatched;
@@ -61,7 +61,7 @@ public class AutoClickService extends AccessibilityService {
             @Override
             public void onCompleted(GestureDescription g) {
                 HttpServerService.totalClicks++;
-                MainActivity.addLog("✓ LongPress (" + (int)x + "," + (int)y + ") " + durationMs + "ms");
+                MainActivity.addLog("LongPress OK (" + (int)x + "," + (int)y + ") " + durationMs + "ms");
             }
             @Override
             public void onCancelled(GestureDescription g) {}
@@ -79,7 +79,7 @@ public class AutoClickService extends AccessibilityService {
         return dispatchGesture(builder.build(), new GestureResultCallback() {
             @Override
             public void onCompleted(GestureDescription g) {
-                MainActivity.addLog("✓ Swipe done");
+                MainActivity.addLog("Swipe OK");
             }
             @Override
             public void onCancelled(GestureDescription g) {}
