@@ -3,11 +3,14 @@
 # This script forwards all arguments to the Gradle Wrapper JAR.
 # It assumes the wrapper JAR is located in the same directory as the script.
 
+# The script works on both Unix and Windows (via .bat wrapper).
+
+# Find the directory containing this script.
 APP_NAME="gradle"
 WRAPPER_JAR="gradle/wrapper/gradle-wrapper.jar"
 DEFAULT_JVM_OPTS=""
 
-# Determine the Java command to use to start the JVM.
+# Resolve the location of the java executable.
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
         # IBM JDK on AIX uses strange locations for the executables
@@ -24,4 +27,5 @@ else
     JAVACMD=java
 fi
 
+# Execute the Gradle Wrapper JAR.
 exec "$JAVACMD" $DEFAULT_JVM_OPTS -classpath "$WRAPPER_JAR" org.gradle.wrapper.GradleWrapperMain "$@"
