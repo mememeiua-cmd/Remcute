@@ -7,14 +7,12 @@
 # Resolve the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Define the Java command (use the JDK installed by actions/setup-java)
-JAVA_CMD="java"
-
 # If the wrapper JAR does not exist, download it using the wrapper properties
 if [ ! -f "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar" ]; then
   echo "Gradle wrapper JAR not found, downloading..."
-  "$SCRIPT_DIR/gradlew" --no-daemon --gradle-version 8.6
+  # Use the Gradle wrapper to download the correct version
+  java -jar "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar" --no-daemon --gradle-version 8.6
 fi
 
 # Execute the wrapper JAR with all passed arguments
-exec "$JAVA_CMD" -jar "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar" "$@"
+exec java -jar "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar" "$@"
