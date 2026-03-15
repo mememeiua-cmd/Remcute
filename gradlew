@@ -58,7 +58,7 @@ CP=.
 TOOL_CHECK=\"java -version\" 2>&1 | head -n 1 |awk '{print \$3}' |awk -F\".\" '{if (\$2<5) print \"NO\"; else print \"YES\";}'
 
 if [ \"$TOOL_CHECK\" = \"NO\" ]; then
-  echo \"Java version is too low. Please use Java 11 or later.\">
+  echo \"Java version is too low. Please use Java 11 or later.\"
   exit 1
 fi
 
@@ -79,7 +79,7 @@ JAVACMD=\"$JAVACMD $DEFAULT_JVM_OPTS $GRADLE_OPTS\"
 # Determine the Java command to use to start the JVM.
 if [ -n \"\$JAVACMD\" ]; then
   echo \"Using JAVA_HOME: \$JAVA_HOME\"
-echo \"Using GRADLE_HOME: \$GRADLE_HOME\"
+  echo \"Using GRADLE_HOME: \$GRADLE_HOME\"
   java_cmd=\"$JAVACMD\"
 else
   if [ -n \"\$JAVA_HOME\" ]; then
