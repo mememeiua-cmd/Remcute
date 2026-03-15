@@ -7,12 +7,25 @@
 # Resolve the directory containing this script
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Path to the wrapper JAR
+WRAPPER_JAR="$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar"
+
 # If the wrapper JAR does not exist, download it using the wrapper properties
-if [ ! -f "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar" ]; then
-  echo "Gradle wrapper JAR not found, downloading..."
-  # Use the Gradle wrapper to download the correct version
-  java -jar "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar" --no-daemon --gradle-version 8.6
+if [ ! -f "$WRAPPER_JAR" ]; then
+  echo "Gradle wrapper JAR not found, downloading using gradle-wrapper.properties..."
+  # Ensure the properties file exists
+  if [ -f "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.properties" ]; then
+    # Use the Gradle distribution URL from the properties to download the zip
+    DIST_URL=$(grep '^distributionUrl=' "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.properties" | cut -d'=' -f2-)
+    echo "Downloading Gradle distribution from $DIST_URL"
+    curl -L "$DIST_URL" -o gradle.zip
+    unzip -q gradle.zip -d "$SCRIPT_DIR/gradle/wrapper"
+    rm gradle.zip
+  else
+    echo "Error: gradle-wrapper.properties not found. Cannot download Gradle." >&2
+    exit 1
+  fi
 fi
 
 # Execute the wrapper JAR with all passed arguments
-exec java -jar "$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar" "$@"
+exec java -jar "$WRAPPER_JAR" "$@"
